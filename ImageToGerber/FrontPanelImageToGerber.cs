@@ -23,15 +23,16 @@ namespace ImageToGerber
                     var F = System.IO.Directory.GetFiles(args[0], "*.gko" );
                     foreach (var a in F)
                     {
-                       // try
-                        {
+                        string basename = a.Substring(0, a.Length - 4);
+                        string front = basename + "Silk.png";
+                        string back = basename + "BottomSilk.png";
+                        if (System.IO.File.Exists(front)) ConvertFile(a, false);
+                        if (System.IO.File.Exists(back)) ConvertFile(a, true);
 
-                            ConvertFile(a, backside);
-                        }
-                       // catch(Exception E)
-                        {
-                         //   Console.WriteLine("error! {0}", E.Message);
-                        }
+                        GerberImageCreator GIC = new GerberImageCreator();
+                        GIC.AddBoardsToSet(System.IO.Directory.GetFiles(basename).ToList());
+                        GIC.WriteImageFiles(basename + "/render");
+
                     }
                 }
             }
@@ -42,15 +43,18 @@ namespace ImageToGerber
             string basename = a.Substring(0, a.Length - 4);
 
             string png = basename + "Silk.png";
+            string goldpng = basename + "Gold.png";
             if (back)
             {
                 png = basename + "BottomSilk.png";
+                goldpng = basename + "BottomGold.png";
             }
-            string goldpng = basename + "Gold.png";
 
             Bitmap B = (Bitmap)Image.FromFile(png);
             Bitmap B2 = null;
+
             if (System.IO.File.Exists(goldpng)) B2 = (Bitmap)Image.FromFile(goldpng);
+
             try
             {
                 System.IO.Directory.CreateDirectory(basename);
@@ -59,15 +63,18 @@ namespace ImageToGerber
             {
 
             }
+
             string newa = basename + "\\" + System.IO.Path.GetFileName(a); ;
             string gko = basename + ".gko";
             string pnl = basename + ".pnl";
+
             if (System.IO.File.Exists(gko) == false && System.IO.File.Exists(pnl) == true)
             {
                 gko = pnl;
             }
 
-                string newgko = basename + "\\" + System.IO.Path.GetFileNameWithoutExtension(a) + ".gko" ; ;
+            string newgko = basename + "\\" + System.IO.Path.GetFileNameWithoutExtension(a) + ".gko" ; ;
+
             if (System.IO.File.Exists(gko))
             {
                 System.IO.File.Copy(gko, newgko, true);
@@ -146,9 +153,7 @@ namespace ImageToGerber
 
                 GerberLibrary.ArtWork.Functions.WriteBitmapToGerber(p, PLS, Res, B, -128);
 
-                GerberImageCreator GIC = new GerberImageCreator();
-                GIC.AddBoardsToSet(System.IO.Directory.GetFiles(basename).ToList());
-                GIC.WriteImageFiles(basename + "/render");
+               
             }
         }
     }
